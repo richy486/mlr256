@@ -28,12 +28,12 @@ local fileselect = require 'fileselect'
 local textentry = require 'textentry'
 local pattern_time = require 'pattern_time'
 
-local TRACKS = 6
+local TRACKS = 14 -- tracks playing, 6 on 128, 14 on 256
 local FADE = 0.01
 
 -- softcut has ~350s per buffer
 local CLIP_LEN_SEC = 45
-local MAX_CLIPS = 7
+local MAX_CLIPS = 14 -- original 7
 
 local vREC = 1
 local vCUT = 2
@@ -313,7 +313,7 @@ heldmax = {}
 done = {}
 first = {}
 second = {}
-for i = 1,8 do
+for i = 1,(TRACKS+2) do
   held[i] = 0
   heldmax[i] = 0
   done[i] = 0
@@ -493,11 +493,13 @@ end
 
 gridkey_nav = function(x,z)
   if z==1 then
+    -- Modes
     if x==1 then
       if alt == 1 then softcut.buffer_clear() end
       set_view(vREC)
     elseif x==2 then set_view(vCUT)
     elseif x==3 then set_view(vCLIP)
+    -- Pattens
     elseif x>4 and x<9 then
       local i = x - 4
       if alt == 1 then
@@ -514,6 +516,7 @@ gridkey_nav = function(x,z)
       else
         local e={t=ePATTERN,i=i,action="start"} event(e)
       end
+    -- Recall
     elseif x>8 and x<13 then
       local i = x-8
       if alt == 1 then
@@ -533,6 +536,7 @@ gridkey_nav = function(x,z)
         recall_exec(i)
         recall[i].active = true
       end
+    -- Quantize
     elseif x==15 and alt == 0 then
       quantize = 1 - quantize
       if quantize == 0 then quantizer:stop()
@@ -540,6 +544,7 @@ gridkey_nav = function(x,z)
       end
     elseif x==15 and alt == 1 then
       set_view(vTIME)
+    -- Alt
     elseif x==16 then alt = 1
     end
   elseif z==0 then
@@ -738,8 +743,9 @@ v.gridkey[vCUT] = function(x, y, z)
   --print(held[y])
 
   if y == 1 then gridkey_nav(x,z)
-  elseif y == 8 then return
+  elseif y == TRACKS + 1 then return
   else
+    print("CUT y "..y)
     i = y-1
     if z == 1 then
       if focus ~= i then
